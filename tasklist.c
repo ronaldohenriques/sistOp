@@ -4,66 +4,68 @@
 void list_append(task_t **list, task_t *task)
 {
   task_t *aux, *first;
-
+  
   first = *list;
-  //printf("Entrou no list_append()\n");
 
   if (*list == NULL) {
-    printf("First task of the list.\n");
+    //printf("First task of the list.\n");
     *list = task;
     (*list)->next = *list;
     (*list)->prev = *list;
-    first = *list;
     return;
   }
 
   if (task == NULL)  {
-    perror("Task doesn't exists.\n");
+    //perror("Task doesn't exists.\n");
+    return;
+  }
+
+  if (task->next != NULL || task->prev != NULL) {
+    //printf("This task belongs to another list.");
     return;
   }
 
   do {
     aux = *list;
   } while ((*list = (*list)->next) != first);
-  
+
   aux->next = task;
   task->prev = aux;
   task->next = first;
   first->prev = task;
-  //printf("Saiu do list_append()\n");
 }
 
 task_t *list_remove(task_t **list, task_t *elem)
 {
-  task_t *aux, *aux_prev, *aux_next;
+  task_t *aux;
   int count;
 
+  aux = *list; 
+
   if (*list == NULL) {
-    perror("List doesn't exists.\n");
+    //perror("List doesn't exists.\n");
     return NULL;
   }
 
- if (elem == NULL)  {
-    perror("Invalid element.\n");
+  if (elem == NULL)  {
+    //perror("Invalid element.\n");
     return NULL;
   }
 
-  printf("list_size(*list) = %d\n", list_size(*list));
+  //printf("list_size(*list) = %d\n", list_size(*list));
   
   for (count = 0; count < list_size(*list); count++) {
-    aux = *list;
-
-    printf("count = %d\n", count);
+    //printf("count = %d\n", count);
 
     if (aux == elem) {
-      printf("if(aux == elem) -> TRUE\n");
+      //printf("if(aux == elem) -> TRUE\n");
       break;
     }
 
-    *list = (*list)->next;
+    aux = aux->next;
 
     if (count == list_size(*list) - 1) {
-      perror("Element not found.\n");
+      //perror("Element not found.\n");
       return NULL;
     }
   }
@@ -75,13 +77,13 @@ task_t *list_remove(task_t **list, task_t *elem)
     return aux;
   }
 
-  aux_prev = aux->prev;
-  aux_next = aux->next;
-  aux_prev->next = aux_next;
-  aux_next->prev = aux_prev;
+  if (aux == *list)
+    *list = aux->next;
+
+  aux->prev->next = aux->next;
+  aux->next->prev = aux->prev;
   aux->next = NULL;
   aux->prev = NULL;
-  *list = aux_next;
 
   return aux;
 }
@@ -89,6 +91,9 @@ task_t *list_remove(task_t **list, task_t *elem)
 void list_print(char *name, task_t *list)
 {
   int curr_id, prev_id, next_id;
+  task_t *first;
+
+  first = list;
 
   printf("%s: [", name);
 
@@ -100,7 +105,7 @@ void list_print(char *name, task_t *list)
     prev_id = list->prev->id;
     next_id = list->next->id;
     printf("%d<%d>%d ", prev_id, curr_id, next_id);
-  } while ((list = list->next) != NULL);
+  } while ((list = list->next) != first);
 
   printf("]\n");
 }
