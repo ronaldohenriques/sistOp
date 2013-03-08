@@ -1,3 +1,5 @@
+// Aluno: Bruno E. O. Meneguele
+
 #include <stdio.h>
 #include "tasklist.h"
 

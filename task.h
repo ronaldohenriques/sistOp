@@ -1,3 +1,5 @@
+// Aluno: Bruno E. O. Meneguele
+
 #ifndef __TASK__
 #define __TASK__
 
