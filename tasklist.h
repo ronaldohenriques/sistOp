@@ -8,17 +8,19 @@
 #define NULL ((void *) 0)
 #endif
 
+#include "task.h"
+
 // estrutura basica de um elemento da lista encadeada; mais tarde,
 // este elemento vai abrigar os demais atributos que definem uma
 // tarefa (processo ou thread) do sistema operacional.
-
+/*
 typedef struct task_t 
 {
-   struct task_t *prev ;  // aponta para o elemento anterior na lista
+  struct task_t *prev ;  // aponta para o elemento anterior na lista
    struct task_t *next ;  // aponta para o elemento seguinte na lista
    int id ;               // conteudo do elemento
 } task_t ;
-
+*/
 // Insere um elemento (tarefa) no final da lista.
 // Condicoes a verificar, gerando msgs de erro:
 // - a lista deve existir
