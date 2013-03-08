@@ -28,11 +28,6 @@ void task_init()
   printf("task_init: task main created.\n");
 #endif
  
-  if (err == -1) {
-    perror("task_init: dispatcher getcontext failed.\n");
-    return;
-  }
-  
   err = task_create(&dispatcher, dispatcher_body, 0);
 
   if (err == -1) {
@@ -76,16 +71,23 @@ int task_create(task_t *task, void (*start_routine), void *arg)
   }
 
   task->id = id_counter;
+  task->priority = 0;
+  task->age = 0;
 #ifdef DEBUG
   printf("task_create: task %d created.\n", id_counter);
 #endif
   makecontext(&(task->context), start_routine, 1, arg);
+  
+  if (task != &dispatcher) {
+#ifdef DEBUG
+    printf("task_create: list_append task %d\n", task->id);
+#endif
+    list_append(&ready_list, task);
+  }
+
 #ifdef DEBUG
   printf("<< task_create()\n");
 #endif
-  
-  if ((task != &main_task) || (task != &dispatcher))
-    list_append(&ready_list, task);
 
   return id_counter;
 }
@@ -164,11 +166,61 @@ int task_id()
   return curr_task->id;
 }
 
+int task_nice(int nice_level)
+{
+  int old_priority;
+
+  old_priority = curr_task->priority;
+
+  if (nice_level < abs(20)) {
+#ifdef DEBUG
+    printf("task_nice: old_priority = %d, nice_level = %d\n", 
+      old_priority, nice_level); 
+#endif
+    curr_task->priority = nice_level;
+  }
+
+  return old_priority;
+}
+
 task_t* scheduler()
 {
-  task_t *task;
+  task_t *task, *first, *aux;
+  int higher = 20;
 
-  task = list_remove(&ready_list, ready_list);  
+  first = ready_list;
+  task = first;
+  aux = first;
+
+  do {
+#ifdef DEBUG
+    printf("scheduler: task: %d, priority: %d, age: %d\n", 
+      task->id, task->priority, task->age);
+#endif
+    if ((task->priority - task->age) < higher) {
+      higher = task->priority - task->age;
+      aux = task;
+    } else if ((task->priority - task->age) == higher) {
+      if (task->priority < aux->priority)
+        aux = task;
+    }
+  } while ((task = task->next) != first);
+
+  do {
+    if (task == aux)
+      continue;
+
+    if ((task->priority - task->age) >= higher &&
+      (task->priority - task->age) > -20)
+      task->age++;
+  } while ((task = task->next) != first);
+  
+  task = list_remove(&ready_list, aux);  
+#ifdef DEBUG
+    printf("scheduler: choosed task: %d, priority: %d, age: %d\n", 
+      task->id, task->priority, task->age);
+#endif
+  task->age = 0;
   return task;
 }
 

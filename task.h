@@ -7,6 +7,8 @@ typedef struct task_t {
   struct task_t *prev;
   struct task_t *next;
   int id;
+  int priority;
+  int age;
   ucontext_t context;
 } task_t;
 
@@ -18,5 +20,6 @@ void task_exit(int);
 int task_id();
 void dispatcher_body();
 task_t* scheduler();
+int task_nice(int);
 
 #endif
