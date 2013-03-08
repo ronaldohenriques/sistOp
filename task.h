@@ -12,5 +12,6 @@ void task_init();
 int task_create(task_t *, void (*), void *);
 int task_switch(task_t *);
 void task_exit(int);
+int task_id();
 
 #endif

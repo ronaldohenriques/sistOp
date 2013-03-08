@@ -110,3 +110,8 @@ void task_exit(int exit_code)
   printf(">> task_exit()\n");
 #endif
 }
+
+int task_id()
+{
+  return curr_task->id;
+}
