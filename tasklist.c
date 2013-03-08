@@ -7,21 +7,23 @@ void list_append(task_t **list, task_t *task)
   
   first = *list;
 
+  // Adiciona o primeiro item da lista.
   if (*list == NULL) {
-    //printf("First task of the list.\n");
     *list = task;
     (*list)->next = *list;
     (*list)->prev = *list;
     return;
   }
 
+  // Tarefa invalida.
   if (task == NULL)  {
-    //perror("Task doesn't exists.\n");
+    perror("Task doesn't exists.\n");
     return;
   }
 
+  // Tarefa pertencente a outra lista.
   if (task->next != NULL || task->prev != NULL) {
-    //printf("This task belongs to another list.");
+    perror("This task belongs to another list.");
     return;
   }
 
@@ -42,41 +44,44 @@ task_t *list_remove(task_t **list, task_t *elem)
 
   aux = *list; 
 
+  // Lista nao existente.
   if (*list == NULL) {
-    //perror("List doesn't exists.\n");
+    perror("List doesn't exists.\n");
     return NULL;
   }
 
+  // Elemento invalido.
   if (elem == NULL)  {
-    //perror("Invalid element.\n");
+    perror("Invalid element.\n");
     return NULL;
   }
 
-  //printf("list_size(*list) = %d\n", list_size(*list));
-  
+  // Percorre toda a lista em busca do elemento 
+  // desejado.
   for (count = 0; count < list_size(*list); count++) {
-    //printf("count = %d\n", count);
-
-    if (aux == elem) {
-      //printf("if(aux == elem) -> TRUE\n");
+    if (aux == elem) 
       break;
-    }
 
     aux = aux->next;
 
     if (count == list_size(*list) - 1) {
-      //perror("Element not found.\n");
+      perror("Element not found.\n");
       return NULL;
     }
   }
 
+  // Caso a lista possuir apenas um elemento faz com 
+  // que o ponteiro para a lista aponte para NULL.
   if (list_size(*list) == 1) {
     *list = NULL;
     aux->next = NULL;
     aux->prev = NULL;
     return aux;
   }
-
+  
+  // Se o elemento removido for o primeiro da lista
+  // faz com que o ponteiro da lista aponte para o
+  // segundo (que sera o novo primeiro elemento).
   if (aux == *list)
     *list = aux->next;
 
@@ -117,14 +122,13 @@ int list_size(task_t *list)
 
   first = list;
 
+  // Caso a lista for NULL, retorna 0.
   if (list == NULL) {
-    //printf("count: %d\n", count);
     return count;
   }
 
   do {
     count++;
-    //printf("count: %d\n", count);
   } while ((list = list->next) != first);
 
   return count;

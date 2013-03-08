@@ -49,8 +49,9 @@ int task_create(task_t *task, void (*start_routine), void *arg)
 #ifdef DEBUG
   printf(">> task_create()\n");
 #endif
+  // Alocamento de 32kB de memoria para a pilha de 
+  // contexto.
   stack = (char *) malloc(STACKSIZE);
-  id_counter++;
   err = getcontext(&(task->context));
 
   if (err == -1) {
@@ -70,6 +71,9 @@ int task_create(task_t *task, void (*start_routine), void *arg)
     return -1;
   }
 
+  id_counter++;
+
+  // Inicializando os atributos da tarefa.
   task->id = id_counter;
   task->priority = 0;
   task->age = 0;
@@ -77,7 +81,9 @@ int task_create(task_t *task, void (*start_routine), void *arg)
   printf("task_create: task %d created.\n", id_counter);
 #endif
   makecontext(&(task->context), start_routine, 1, arg);
-  
+ 
+  // Todas as tarefas sao adicionas a lista, menos 
+  // o dispatcher.
   if (task != &dispatcher) {
 #ifdef DEBUG
     printf("task_create: list_append task %d\n", task->id);
@@ -123,6 +129,9 @@ void task_yield()
 #ifdef DEBUG
   printf(">> task_yield()\n");
 #endif
+
+  // Cada tarefa que chama task_yield() eh colocada no 
+  // fim da fila de tarefas prontas, menos o main().
   if (curr_task != &main_task)
     list_append(&ready_list, curr_task);
   
@@ -146,6 +155,9 @@ void task_exit(int exit_code)
   printf(">> task_exit()\n");
 #endif
 
+  // Caso o dispatcher executar task_exit() o contexto
+  // eh mudado para o main(). Caso for qualquer outra 
+  // tarefa o contexto é mudado para o dispatcher.
   if (curr_task == &dispatcher)
     err = task_switch(&main_task);
   else
@@ -186,10 +198,17 @@ int task_nice(int nice_level)
 task_t* scheduler()
 {
   task_t *task, *first, *aux;
-  int higher = 20;
+  int higher = 20; // Armazena a maior prioridade da lista.
 
+  // First aponta para o primeiro elemento da lista
+  // de tarefas prontas.
   first = ready_list;
+
+  // Task sera a tarefa analisada no momento.
   task = first;
+
+  // Aux servira para armazenar a tarefa de maior prioridade
+  // ateh o termino do scheduler.
   aux = first;
 
   do {
@@ -197,15 +216,24 @@ task_t* scheduler()
     printf("scheduler: task: %d, priority: %d, age: %d\n", 
       task->id, task->priority, task->age);
 #endif
+
+    // Seleciona a tarefa com maior prioridade da lista de 
+    // tarefas prontas.
     if ((task->priority - task->age) < higher) {
       higher = task->priority - task->age;
       aux = task;
-    } else if ((task->priority - task->age) == higher) {
+    } 
+    // Caso haver um empate entre as prioridades de duas 
+    // tarefas a escolhida eh a que possuir maior prioridade
+    // inicial (ignorando o task aging).
+    else if ((task->priority - task->age) == higher) {
       if (task->priority < aux->priority)
         aux = task;
     }
   } while ((task = task->next) != first);
 
+  // Realiza o task aging em todas as tarefas que nao 
+  // que nao foram selecionadas.
   do {
     if (task == aux)
       continue;
@@ -215,20 +243,28 @@ task_t* scheduler()
       task->age++;
   } while ((task = task->next) != first);
   
+  // Remove a tarefa da lista de tarefas prontas, 
+  // pois esta estara em execucao.
   task = list_remove(&ready_list, aux);  
 #ifdef DEBUG
     printf("scheduler: choosed task: %d, priority: %d, age: %d\n", 
       task->id, task->priority, task->age);
 #endif
+
+  // Zera a idade da tarefa escolhida.
   task->age = 0;
+
+  // Retorna a tarefa que deve ocupar o processador.
   return task;
 }
 
 void dispatcher_body()
 {
   int err;
-  task_t* next;
+  task_t* next; // Tarefa que ocupara o processador.
 
+  // Caso haver alguma tarefa na lista de prontas
+  // o while eh executado.
   while (list_size(ready_list) > 0) {
     next = scheduler();
 
@@ -242,5 +278,6 @@ void dispatcher_body()
     }
   }
 
+  // Finaliza o dispatcher, voltando para o main.
   task_exit(0);
 }
