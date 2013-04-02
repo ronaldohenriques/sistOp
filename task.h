@@ -12,6 +12,7 @@ typedef struct task_t {
   int id;               // Identifiador da tarefa.
   int priority;         // Prioridade da tarefa, manipulada no scheduler.
   int age;              // Idade da tarefa, usada no 'task aging' do scheduler.
+  int ticks;            // Quantidades de ticks restantes do quantum total.
   ucontext_t context;   // Contexto da tarefa.
 } task_t;
 
