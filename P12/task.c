@@ -601,8 +601,6 @@ int mqueue_recv(mqueue_t *queue, void *msg)
 
 int mqueue_destroy(mqueue_t *queue)
 {
-  int i;
-
   if (queue == NULL)
     return -1;
 
