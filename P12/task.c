@@ -601,17 +601,17 @@ int mqueue_recv(mqueue_t *queue, void *msg)
 
 int mqueue_destroy(mqueue_t *queue)
 {
-  int i, err;
+  int i;
 
   if (queue == NULL)
     return -1;
 
-  if ((err = sem_destroy(&queue->s_free)) == -1)
-    return err ;
-  if ((err = sem_destroy(&queue->s_buffer)) == -1)
-    return err;
-  if ((err = sem_destroy(&queue->s_msg)) == -1)
-    return err;
+  if (sem_destroy(&queue->s_free) == -1)
+    return -1;
+  if (sem_destroy(&queue->s_buffer) == -1)
+    return -1;
+  if (sem_destroy(&queue->s_msg) == -1)
+    return -1;
 
   // Zerando conteudo
   memset(queue->queue, '0', queue->size*queue->max);
