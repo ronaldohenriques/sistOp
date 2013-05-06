@@ -561,13 +561,19 @@ int mqueue_send(mqueue_t *queue, void *msg)
 {
   if (queue == NULL)
     return -1;
+  
+  if (sem_down(&queue->s_free) == -1)
+    return -1;
+  if (sem_down(&queue->s_buffer) == -1)
+    return -1;
 
-  sem_down(&queue->s_free);
-  sem_down(&queue->s_buffer);
   memcpy(&(queue->queue[queue->write_idx * queue->size]), msg, queue->size);
   queue->write_idx = (queue->write_idx + 1) % queue->max;
-  sem_up(&queue->s_buffer);
-  sem_up(&queue->s_msg);
+  
+  if (sem_up(&queue->s_buffer) == -1)
+    return -1;
+  if (sem_up(&queue->s_msg) == -1)
+    return -1;
 
   return 0;
 }
@@ -576,13 +582,19 @@ int mqueue_recv(mqueue_t *queue, void *msg)
 {
   if (queue == NULL)
     return -1;
-
-  sem_down(&queue->s_msg);
-  sem_down(&queue->s_buffer);
+  
+  if (sem_down(&queue->s_msg) == -1)
+    return -1;
+  if (sem_down(&queue->s_buffer) == -1)
+    return -1;
+  
   memcpy(msg, &(queue->queue[queue->read_idx * queue->size]), queue->size);
   queue->read_idx = (queue->read_idx + 1) % queue->max;
-  sem_up(&queue->s_buffer);
-  sem_up(&queue->s_free);
+  
+  if (sem_up(&queue->s_buffer) == -1)
+    return -1;
+  if (sem_up(&queue->s_free) == -1)
+    return -1;
 
   return 0;
 }
